@@ -1,30 +1,28 @@
-# Stage 1: Build the application
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# Use the official .NET SDK image to build the application
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 
-# Set the working directory inside the container
-WORKDIR /source
-
-# Copy the project file and restore any dependencies
-COPY Web-App-DevOps.csproj ./
-RUN dotnet restore
-
-# Copy the rest of the application code into the container
-COPY . .
-
-# Build the application
-RUN dotnet publish Web-App-DevOps.csproj -c Release -o /app/out
-
-# Stage 2: Create the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
-
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Copy the build output from the build stage to the runtime stage
+# Copy the project file and restore dependencies
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copy the remaining source code and build the application
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+# Use the official .NET runtime image to run the application
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the build output from the build stage
 COPY --from=build /app/out .
 
-# Expose the port on which the application will be available
-EXPOSE 8080
+# Expose the port the app runs on
+EXPOSE 80
 
 # Set the entry point for the application
 ENTRYPOINT ["dotnet", "Web-App-DevOps.dll"]
