@@ -1,19 +1,26 @@
-# Use the official .NET Core runtime as the base image
-FROM mcr.microsoft.com/dotnet/runtime:5.0 AS base
-WORKDIR /app
-# Use the official .NET Core SDK as the build image
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
-WORKDIR /src
-COPY ["Web-App-DevOps.csproj", "./"]
-RUN dotnet restore "./Web-App-DevOps.csproj"
-COPY . .
-WORKDIR "/src/"
-RUN dotnet build "Web-App-DevOps.csproj" -c Release -o /app/build
-FROM build AS publish
-RUN dotnet publish "Web-App-DevOps.csproj" -c Release -o /app/publish
-# Build the final image using the base image and the published output
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Web-App-DevOps.dll"]
+# Use the official .NET SDK image for building
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
+WORKDIR /source
+
+# Copy the project file into the container
+COPY *.csproj ./
+RUN dotnet restore
+#not rrunning
+# Copy the rest of the files into the container
+COPY . ./
+
+# Build the application
+RUN dotnet publish -c Release -o /app/out  # Output directory should be /app/out
+
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /source  # Change the working directory to /source
+
+# Copy the published output from the build stage into the runtime image
+COPY --from=build /app/out ./
+
+EXPOSE 3000
+
+# Set the entry point for the application
+ENTRYPOINT ["dotnet", "Web-App-DevOps.dll"]
