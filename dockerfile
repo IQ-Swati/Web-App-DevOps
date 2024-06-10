@@ -24,7 +24,7 @@ WORKDIR /app
 COPY --from=build /out .
 
 # Expose the port on which the application will be available
-EXPOSE 80
+EXPOSE 8080
 
 # Set the entry point for the application
 ENTRYPOINT ["dotnet", "Web-App-DevOps.dll"]
