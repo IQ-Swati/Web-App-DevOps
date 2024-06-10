@@ -11,14 +11,14 @@ RUN dotnet restore
 COPY . ./
 
 # Build the application
-RUN dotnet publish -c Release -o out 
+RUN dotnet publish -c Release -o /source/out 
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /source  # Change the working directory to /source
 
 # Copy the published output from the build stage into the runtime image
-COPY --from=build /app/out ./
+COPY --from=build /source/out ./
 
 EXPOSE 3000
 
