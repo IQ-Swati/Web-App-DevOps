@@ -1,28 +1,26 @@
-# Use the official .NET SDK image to build the application
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+# Use the official .NET SDK image for building
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
-# Set the working directory
-WORKDIR /app
+WORKDIR /source
 
-# Copy the project file and restore dependencies
+# Copy the project file into the container
 COPY *.csproj ./
 RUN dotnet restore
-
-# Copy the remaining source code and build the application
+#not rrunning
+# Copy the rest of the files into the container
 COPY . ./
-RUN dotnet publish -c Release -o out
 
-# Use the official .NET runtime image to run the application
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
+# Build the application
+RUN dotnet publish -c Release -o /app/out  # Output directory should be /app/out
 
-# Set the working directory
-WORKDIR /app
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /source  # Change the working directory to /source
 
-# Copy the build output from the build stage
-COPY --from=build /app/out .
+# Copy the published output from the build stage into the runtime image
+COPY --from=build /app/out ./
 
-# Expose the port the app runs on
-EXPOSE 80
+EXPOSE 3000
 
 # Set the entry point for the application
 ENTRYPOINT ["dotnet", "Web-App-DevOps.dll"]
